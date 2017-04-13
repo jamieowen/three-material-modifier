@@ -1,0 +1,15 @@
+{
+  "name": "three-material-modifier",
+  "version": "0.0.1",
+  "description": "Tool for extending three.js materials by modifying ShaderLib code.",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jamie Owen <hello@jamieowen.com> (=)",
+  "license": "ISC"
+}
