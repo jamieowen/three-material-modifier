@@ -1,15 +1,24 @@
 {
   "name": "three-material-modifier",
   "version": "0.0.1",
-  "description": "Tool for extending three.js materials by modifying ShaderLib code.",
+  "description": "Tool for extending three.js materials by modifying existing ShaderLib code with regexp.",
   "main": "index.js",
   "directories": {
     "example": "example",
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "budo example/index.js -v --live --open -- -t [ babelify --presets [ es2015 ] ]"
   },
   "author": "Jamie Owen <hello@jamieowen.com> (=)",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "three": "^0.84.0"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "^6.24.1",
+    "babelify": "^7.3.0",
+    "orbit-controls": "^1.1.3"
+  }
 }

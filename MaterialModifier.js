@@ -1,4 +1,14 @@
-import { getThree } from './THREE';
+
+import {
+    MeshBasicMaterial,
+    MeshLambertMaterial,
+    MeshPhongMaterial,
+    MeshStandardMaterial,
+    MeshDepthMaterial,
+    ShaderLib
+} from 'three';
+
+import defaultHooks from './defaultHooks';
 
 const modifySource = ( source, hookDefs, hooks )=>{
 
@@ -29,16 +39,14 @@ const modifySource = ( source, hookDefs, hooks )=>{
 let shaderMap = null;
 const getShaderDef = ( classOrString )=>{
 
-    let THREE = getThree();
-
     if( !shaderMap ){
 
         let classes = {
-            standard: THREE.MeshStandardMaterial,
-            basic: THREE.MeshBasicMaterial,
-            lambert: THREE.MeshLambertMaterial,
-            phong: THREE.MeshPhongMaterial,
-            depth: THREE.MeshDepthMaterial
+            standard: MeshStandardMaterial,
+            basic: MeshBasicMaterial,
+            lambert: MeshLambertMaterial,
+            phong: MeshPhongMaterial,
+            depth: MeshDepthMaterial
         }
 
         shaderMap = {};
@@ -47,11 +55,11 @@ const getShaderDef = ( classOrString )=>{
 
             shaderMap[ key ] = {
                 ShaderClass: classes[ key ],
-                ShaderLib: THREE.ShaderLib[ key ],
+                ShaderLib: ShaderLib[ key ],
                 Key: key,
                 Count: 0,
                 ModifiedName: function(){
-                    return `ModifiedMesh${ this.Key[0].toUpperCase() + this.Key.slice(1) }Material_${ this.Count++ }`;
+                    return `ModifiedMesh${ this.Key[0].toUpperCase() + this.Key.slice(1) }Material_${ ++this.Count }`;
                 },
                 TypeCheck: `isMesh${ key[0].toUpperCase() + key.slice(1) }Material`
             }
@@ -69,7 +77,7 @@ const getShaderDef = ( classOrString )=>{
             }
         }
     }else{
-        shaderDef = shaderMap[ key ];
+        shaderDef = shaderMap[ classOrString ];
     }
 
     if( !shaderDef ){
@@ -80,14 +88,23 @@ const getShaderDef = ( classOrString )=>{
 
 }
 
+/**
+ * The main Material Modofier
+ */
+class MaterialModifier{
 
-
-export default class MaterialModifier{
-
-    constructor(){
+    constructor( vertexHookDefs, fragmentHookDefs ){
 
         this._vertexHooks = {};
         this._fragmentHooks = {};
+
+        if( vertexHookDefs ){
+            this.defineVertexHooks( vertexHookDefs );
+        }
+
+        if( fragmentHookDefs ){
+            this.defineFragmentHooks( fragmentHookDefs );
+        }
 
     }
 
@@ -117,7 +134,7 @@ export default class MaterialModifier{
 
             var cls = function ${ClassName}( params ){
 
-                BaseClass.call( this );
+                BaseClass.call( this, params );
 
                 this.uniforms = Object.assign( {}, uniforms );
 
@@ -177,3 +194,7 @@ export default class MaterialModifier{
     }
 
 }
+
+export { MaterialModifier }
+
+export default new MaterialModifier( defaultHooks.vertexHooks, defaultHooks.fragmentHooks );
