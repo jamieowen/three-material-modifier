@@ -2,7 +2,10 @@
 import MaterialModifier from '../MaterialModifier'
 import OrbitControls from 'orbit-controls';
 
-import CustomLambertMaterial from './CustomLambertMaterial';
+import {
+    CustomStandardMaterial,
+    CustomStandardDepthMaterial
+} from './CustomLambertMaterial';
 
 import {
     Scene,
@@ -10,12 +13,16 @@ import {
     PerspectiveCamera,
     AmbientLight,
     DirectionalLight,
+    BasicShadowMap,
     Vector3,
     Mesh,
     MeshLambertMaterial,
+    PlaneBufferGeometry,
     BoxBufferGeometry,
     SphereBufferGeometry,
-    TorusBufferGeometry
+    TorusBufferGeometry,
+    DoubleSide,
+    CameraHelper
 } from 'three';
 
 window.onload = ()=>{
@@ -24,16 +31,21 @@ window.onload = ()=>{
         antialias: true
     });
 
+    renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = BasicShadowMap;
+    renderer.gammaInput = true;
+	renderer.gammaOutput = true;
+
     renderer.setPixelRatio( Math.max( 2, window.devicePixelRatio ) );
     document.body.appendChild( renderer.domElement );
     document.body.style.margin = '0px';
     document.body.style.overflow = 'hidden';
 
     let scene = new Scene();
-    let camera = new PerspectiveCamera( 45, 4/3, 0.1,1000 );
+    let camera = new PerspectiveCamera( 45, 4/3, 0.1,400 );
 
     let controls = OrbitControls({
-        distance: 150,
+        distance: 100,
         phi: Math.PI * 0.3,
         zoomSpeed: 0.1,
         distanceBounds: [ 0,400 ],
@@ -42,14 +54,23 @@ window.onload = ()=>{
     });
 
     let ambLight = new AmbientLight( 0xffffe5, 0.5 );
-    let dirLight = new DirectionalLight( 0xeefffff );
+    let dirLight = new DirectionalLight( 0xeeffff, 1 );
 
     scene.add( ambLight );
     scene.add( dirLight );
 
-    dirLight.position.set( 0.2,1,0 );
+    dirLight.position.set( 0, 20, 0 );
+    dirLight.castShadow = true;
+	dirLight.shadow.camera.near = 1;
+	dirLight.shadow.camera.far = 25;
+	dirLight.shadow.camera.right = 30;
+	dirLight.shadow.camera.left = -30;
+	dirLight.shadow.camera.top	= 30;
+	dirLight.shadow.camera.bottom = -30;
+	dirLight.shadow.mapSize.width = 1024;
+	dirLight.shadow.mapSize.height = 1024;
 
-    //camera.position.set( 0,10,100 );
+    scene.add( new CameraHelper( dirLight.shadow.camera ) );
 
     // Test some inline 'easy' modifiers.
     // Inline Custom Material by passing a three.js class identifier
@@ -71,10 +92,11 @@ window.onload = ()=>{
 
         vertexShader: {
 
+
         },
         fragmentShader: {
             postFragColor: `
-                gl_FragColor = vec4( 1.0,0.0,0.0,1.0 );
+                gl_FragColor = vec4( 0.0,0.0,1.0,1.0 );
             `
         }
 
@@ -83,12 +105,12 @@ window.onload = ()=>{
     // Inline Custom Material using a string identifier
 
     // Preview using some geometries.
-    let s = 4;
+    let size = 4;
     let geometries = [
 
-        new BoxBufferGeometry( s,s,s,1,1,1 ),
-        new SphereBufferGeometry( s,10,10 ),
-        new TorusBufferGeometry( s,s-2 )
+        new BoxBufferGeometry( size,size,size,1,1,1 ),
+        new SphereBufferGeometry( size,50,50 ),
+        new TorusBufferGeometry( size/2,(size/2)-1 )
 
     ]
 
@@ -101,20 +123,36 @@ window.onload = ()=>{
         MeshLambertMaterial,
         MeshLambertMaterial,
         MeshLambertMaterial,
-        CustomLambertMaterial
+        [ CustomStandardMaterial, CustomStandardDepthMaterial ]
 
     ]
 
-
     // create all meshes
+    let spacing = 20;
     let meshes = materials.map( ( MaterialClass, i )=>{
 
-        let material = new MaterialClass();
+        let DepthMaterialClass;
+        if( MaterialClass instanceof Array ){
+            DepthMaterialClass = MaterialClass[1];
+            MaterialClass = MaterialClass[0];
+        }
+
+        let material = new MaterialClass( {
+            color: Math.random() * 16000,
+            side: DoubleSide
+        });
         let geometry = geometries[ i % geometries.length ];
         let mesh = new Mesh( geometry, material );
 
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        if( DepthMaterialClass ){
+            mesh.customDepthMaterial = new DepthMaterialClass();
+        }
+
         let size = 3;
-        let spacing = 40;
+
         let x = ( i % size ) * spacing;
         let z = Math.floor( i / size ) * spacing;
         let offset = (spacing * (size-1)) / 2;
@@ -126,9 +164,38 @@ window.onload = ()=>{
 
     })
 
+    // add ground plane
+    let planeMat = new MeshLambertMaterial({
+        color: 0xeeeeee,
+        side: DoubleSide
+    })
+    let plane = new Mesh( new PlaneBufferGeometry( 100,100,1,1 ),planeMat );
+    plane.rotation.x = -Math.PI * 0.5;
+    plane.position.set( 0,-size,0 );
+    plane.receiveShadow = true;
+    scene.add( plane );
+
     let lookAt = new Vector3();
 
+    let time = 0.0;
+
     let render = ()=>{
+
+        time+=0.1;
+
+        let mesh;
+        // update materials with a time uniform
+        for( let i = 0; i<meshes.length; i++ ){
+            mesh = meshes[i];
+            if( mesh.material.uniforms && mesh.material.uniforms.time ){
+                mesh.material.uniforms.time.value = time;
+            }
+
+            if( mesh.customDepthMaterial && mesh.customDepthMaterial.uniforms.time ){
+                //console.log( 'custom depth ', time );
+                mesh.customDepthMaterial.uniforms.time.value = time;
+            }
+        }
 
         controls.update();
         camera.position.fromArray(controls.position);

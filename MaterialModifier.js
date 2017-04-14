@@ -153,7 +153,7 @@ class MaterialModifier{
 
                 BaseClass.prototype.copy.call( this, source );
 
-                this.uniforms = THREE.UniformsUtils.clone(source.uniforms);
+                this.uniforms = Object.assign( {}, source.uniforms );
                 this.vertexShader = vertexShader;
                 this.fragmentShader = fragmentShader;
                 this.type = '${ClassName}';
