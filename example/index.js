@@ -16,6 +16,8 @@ import {
     BasicShadowMap,
     Vector3,
     Mesh,
+    RGBADepthPacking,
+    MeshBasicMaterial,
     MeshLambertMaterial,
     PlaneBufferGeometry,
     BoxBufferGeometry,
@@ -148,7 +150,9 @@ window.onload = ()=>{
         mesh.receiveShadow = true;
 
         if( DepthMaterialClass ){
-            mesh.customDepthMaterial = new DepthMaterialClass();
+            mesh.customDepthMaterial = new DepthMaterialClass({
+                depthPacking: RGBADepthPacking
+            });
         }
 
         let size = 3;
@@ -191,10 +195,9 @@ window.onload = ()=>{
                 mesh.material.uniforms.time.value = time;
             }
 
-            if( mesh.customDepthMaterial && mesh.customDepthMaterial.uniforms.time ){
-                //console.log( 'custom depth ', time );
-                mesh.customDepthMaterial.uniforms.time.value = time;
-            }
+            //if( mesh.customDepthMaterial && mesh.customDepthMaterial.uniforms && mesh.customDepthMaterial.uniforms.time ){
+                //mesh.customDepthMaterial.uniforms.time.value = time;
+            //}
         }
 
         controls.update();
