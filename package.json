@@ -1,7 +1,7 @@
 {
   "name": "three-material-modifier",
   "version": "0.0.1",
-  "description": "Tool for extending three.js materials by modifying existing ShaderLib code with regexp.",
+  "description": "Extend three.js materials by modifying existing ShaderLib code with regexp.",
   "main": "index.js",
   "directories": {
     "example": "example",
