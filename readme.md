@@ -47,7 +47,7 @@ let CustomStandardMaterial = MaterialModifier.extend( MeshStandardMaterial, {
 
 });
 
-let mesh = new THREE.Mesh(
+let mesh = new Mesh(
     new BoxBufferGeometry(),
     new CustomStandardMaterial( { color: 0x000000 } )    
 )
@@ -73,11 +73,11 @@ Specify either the three.js material class or a string and supply a shader confi
 
 
 
-## Custom MaterialModifier
+## Customising MaterialModifier
 
 Under the hood, the MaterialModifier is modifying existing THREE.ShaderLib using regexp.
 When instantiating a custom MaterialModifier instance a config object can be supplied with
-'insertbefore' and insertafter statments.  These lines are followed by the actual code found in the three.js ShaderLib for which additions should be inserted.  This makes it possible to define additional hooks if needed.
+'insertbefore:' and 'insertafter:' statements.  These lines are followed by the actual code found in the three.js ShaderLib for which additions should be inserted.  This makes it possible to define additional hooks if needed.
 
 ```
 
@@ -110,6 +110,37 @@ let customMaterialModifier = new MaterialModifier( modifierConfig );
 
 // customMaterialModifier.extend( etc );
 // customMaterialModifier.modify( etc );
+
+
+```
+
+The default MaterialModifier instance can also be modified to include new hooks by passing in the same hook definition syntax to the two define functions - *MaterialModifier.defineFragmentHooks()* and *MaterialModifier.defineVertexHooks()*:
+
+```
+
+MaterialModifier.defineVertexHooks({
+	declarations: 'insertafter:#include <clipping_planes_pars_vertex>\n'
+});
+
+// This would then give an additional property to modify in the shader config :
+
+let CustomMaterial = MaterialModifier.extend( MeshBasicMaterial, {
+	vertexShader: {
+		declarations: `
+			mat4 rotationMatrix(vec3 axis, float angle) {
+			    axis = normalize(axis);
+			    float s = sin(angle);
+			    float c = cos(angle);
+			    float oc = 1.0 - c;
+			    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+			                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+			                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+			                0.0,                                0.0,                                0.0,                                1.0
+			            );
+			}
+		`
+	}	
+}
 
 
 ```
