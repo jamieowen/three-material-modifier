@@ -13,6 +13,7 @@ let uniformDefs = {
     time: { value:0.0, type: 'f' }
 }
 
+
 let CustomPhongMaterial = MaterialModifier.extend( MeshPhongMaterial, {
 
     uniforms: uniformDefs,
@@ -27,6 +28,7 @@ let CustomPhongMaterial = MaterialModifier.extend( MeshPhongMaterial, {
             float radius = 3.0;
 
             // Need to work this out - calculating normals for sphere deform.
+            // http://stackoverflow.com/questions/16750515/calculating-per-vertex-normals-from-3d-noise
 
             // pos x (1,0,0) could be 0, so add pos x (0,1,0).
             vec3 vecTangent = normalize(cross(position, vec3(1.0, 0.0, 0.0))
