@@ -1,7 +1,7 @@
 import MaterialModifier from '../MaterialModifier';
 
 import {
-    MeshStandardMaterial,
+    MeshLambertMaterial,
     MeshDepthMaterial
 } from 'three';
 
@@ -13,7 +13,7 @@ It can then be used with an explicit class declaration extending from the
 correct material.
 */
 
-// Define this as an object here so we can pass the same to the MeshStandardMaterial
+// Define this as an object here so we can pass the same to the MeshLambertMaterial
 // and MeshDepthMaterial - as we want shadows to be cast correctly.
 //
 let modifyOptions = {
@@ -35,14 +35,14 @@ let modifyOptions = {
     }
 }
 
-let CustomStandardDepthMaterial = MaterialModifier.extend( MeshDepthMaterial, modifyOptions );
-export { CustomStandardDepthMaterial };
+let CustomLambertDepthMaterial = MaterialModifier.extend( MeshDepthMaterial, modifyOptions );
+export { CustomLambertDepthMaterial };
 
-let shaderConfig = MaterialModifier.modify( MeshStandardMaterial, modifyOptions );
+let shaderConfig = MaterialModifier.modify( MeshLambertMaterial, modifyOptions );
 
-let TYPE = 'CustomStandardMaterial';
+let TYPE = 'CustomLambertMaterial';
 
-export class CustomStandardMaterial extends MeshStandardMaterial{
+export class CustomLambertMaterial extends MeshLambertMaterial{
 
     constructor( parameters ){
 

@@ -2,10 +2,23 @@
 import MaterialModifier from '../MaterialModifier'
 import OrbitControls from 'orbit-controls';
 
+import { CustomBasicMaterial } from './CustomBasicMaterial';
+
+import {
+    CustomLambertMaterial,
+    CustomLambertDepthMaterial
+} from './CustomLambertMaterial';
+
 import {
     CustomStandardMaterial,
     CustomStandardDepthMaterial
-} from './CustomLambertMaterial';
+} from './CustomStandardMaterial';
+
+import {
+    CustomPhongMaterial,
+    CustomPhongDepthMaterial
+} from './CustomPhongMaterial';
+
 
 import {
     Scene,
@@ -47,8 +60,8 @@ window.onload = ()=>{
     let camera = new PerspectiveCamera( 45, 4/3, 0.1,400 );
 
     let controls = OrbitControls({
-        distance: 100,
-        phi: Math.PI * 0.3,
+        distance: 45,
+        phi: Math.PI * 0.35,
         zoomSpeed: 0.1,
         distanceBounds: [ 0,400 ],
         element: renderer.domElement,
@@ -61,72 +74,46 @@ window.onload = ()=>{
     scene.add( ambLight );
     scene.add( dirLight );
 
-    dirLight.position.set( 0, 20, 0 );
+    let sSize = 20;
+
     dirLight.castShadow = true;
 	dirLight.shadow.camera.near = 1;
-	dirLight.shadow.camera.far = 25;
-	dirLight.shadow.camera.right = 30;
-	dirLight.shadow.camera.left = -30;
-	dirLight.shadow.camera.top	= 30;
-	dirLight.shadow.camera.bottom = -30;
+	dirLight.shadow.camera.far = 35;
+	dirLight.shadow.camera.right = sSize;
+	dirLight.shadow.camera.left = -sSize;
+	dirLight.shadow.camera.top	= sSize;
+	dirLight.shadow.camera.bottom = -sSize;
 	dirLight.shadow.mapSize.width = 1024;
 	dirLight.shadow.mapSize.height = 1024;
 
     scene.add( new CameraHelper( dirLight.shadow.camera ) );
-
-    // Test some inline 'easy' modifiers.
-    // Inline Custom Material by passing a three.js class identifier
-
-    let InlineCustomMaterial1 = MaterialModifier.extend( MeshLambertMaterial, {
-
-        vertexShader: {
-
-        },
-        fragmentShader: {
-            postFragColor: `
-                gl_FragColor = vec4( 1.0,0.0,0.0,1.0 );
-            `
-        }
-
-    } )
-
-    let InlineCustomMaterial2 = MaterialModifier.extend( 'standard', {
-
-        vertexShader: {
-
-
-        },
-        fragmentShader: {
-            postFragColor: `
-                gl_FragColor = vec4( 0.0,0.0,1.0,1.0 );
-            `
-        }
-
-    } )
-
-    // Inline Custom Material using a string identifier
 
     // Preview using some geometries.
     let size = 4;
     let geometries = [
 
         new BoxBufferGeometry( size,size,size,1,1,1 ),
-        new SphereBufferGeometry( size,50,50 ),
-        new TorusBufferGeometry( size/2,(size/2)-1 )
+        new SphereBufferGeometry( size,30,30 ),
+        new BoxBufferGeometry( size,size,size,50,50,50 ),
+        new SphereBufferGeometry( 3,100,100 )
 
     ]
 
     let materials = [
 
-        InlineCustomMaterial1,
-        InlineCustomMaterial2,
-        InlineCustomMaterial2,
-        InlineCustomMaterial2,
-        MeshLambertMaterial,
-        MeshLambertMaterial,
-        MeshLambertMaterial,
-        [ CustomStandardMaterial, CustomStandardDepthMaterial ]
+        CustomBasicMaterial,
+        [ CustomLambertMaterial, CustomLambertDepthMaterial ],
+        [ CustomStandardMaterial, CustomStandardDepthMaterial ],
+        [ CustomPhongMaterial, CustomPhongDepthMaterial ]
 
+
+    ]
+
+    let colors = [
+        0xffffff,
+        0x4400ff,
+        0x001133,
+        0xffeeff
     ]
 
     // create all meshes
@@ -140,10 +127,10 @@ window.onload = ()=>{
         }
 
         let material = new MaterialClass( {
-            color: Math.random() * 16000,
+            color: colors[i],
             side: DoubleSide
         });
-        let geometry = geometries[ i % geometries.length ];
+        let geometry = geometries[ i ];
         let mesh = new Mesh( geometry, material );
 
         mesh.castShadow = true;
@@ -155,7 +142,7 @@ window.onload = ()=>{
             });
         }
 
-        let size = 3;
+        let size = 2;
 
         let x = ( i % size ) * spacing;
         let z = Math.floor( i / size ) * spacing;
@@ -170,7 +157,7 @@ window.onload = ()=>{
 
     // add ground plane
     let planeMat = new MeshLambertMaterial({
-        color: 0xeeeeee,
+        color: 0xeeee33,
         side: DoubleSide
     })
     let plane = new Mesh( new PlaneBufferGeometry( 100,100,1,1 ),planeMat );
@@ -188,16 +175,17 @@ window.onload = ()=>{
         time+=0.1;
 
         let mesh;
+
+        dirLight.position.x = Math.cos( time * 0.1 ) * 8;
+        dirLight.position.z = Math.sin( time * 0.1 ) * 10;
+        dirLight.position.y = 15;
+
         // update materials with a time uniform
         for( let i = 0; i<meshes.length; i++ ){
             mesh = meshes[i];
             if( mesh.material.uniforms && mesh.material.uniforms.time ){
                 mesh.material.uniforms.time.value = time;
             }
-
-            //if( mesh.customDepthMaterial && mesh.customDepthMaterial.uniforms && mesh.customDepthMaterial.uniforms.time ){
-                //mesh.customDepthMaterial.uniforms.time.value = time;
-            //}
         }
 
         controls.update();
