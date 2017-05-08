@@ -1,24 +1,28 @@
 {
   "name": "three-material-modifier",
   "version": "0.0.1",
-  "description": "Extend three.js materials by modifying existing ShaderLib code with regexp.",
-  "main": "index.js",
+  "description": "Modify materials in there.js",
+  "main": "MaterialModifier.js",
   "directories": {
-    "example": "example",
-    "test": "test"
+    "example": "example"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "budo example/index.js -v --live --open -- -t [ babelify --presets [ es2015 ] ]"
+    "example": "budo example/index.js --live --open -- -t [ babelify --presets [ es2015 ] ]"
   },
   "author": "Jamie Owen <hello@jamieowen.com> (=)",
   "license": "ISC",
-  "dependencies": {
-    "three": "^0.84.0"
-  },
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1",
     "babelify": "^7.3.0",
+    "browserify": "^14.3.0",
+    "budo": "^10.0.3",
     "orbit-controls": "^1.1.3"
+  },
+  "dependencies": {
+    "three": "0.85.2"
+  },
+  "browserify": {
+    "transform": [["babelify", { "presets": ["es2015"] }]]
   }
 }
