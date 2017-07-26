@@ -62,6 +62,7 @@ const getShaderDef = ( classOrString )=>{
                     return `ModifiedMesh${ this.Key[0].toUpperCase() + this.Key.slice(1) }Material_${ ++this.Count }`;
                 },
                 TypeCheck: `isMesh${ key[0].toUpperCase() + key.slice(1) }Material`
+
             }
 
         }
@@ -141,6 +142,7 @@ class MaterialModifier{
                 this.vertexShader = vertexShader;
                 this.fragmentShader = fragmentShader;
                 this.type = '${ClassName}';
+
                 this.setValues( params );
 
             }
