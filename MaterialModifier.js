@@ -36,6 +36,17 @@ const modifySource = ( source, hookDefs, hooks )=>{
 
 }
 
+const cloneUniforms = ( uniforms )=>{
+
+    let clone = {};
+    for( let key in uniforms ){ // non-promitive uniform values will be referenced
+        clone[ key ] = Object.assign( {}, uniforms[key] );
+    }
+    return clone;
+
+}
+
+
 let shaderMap = null;
 const getShaderDef = ( classOrString )=>{
 
@@ -89,6 +100,7 @@ const getShaderDef = ( classOrString )=>{
 
 }
 
+
 /**
  * The main Material Modofier
  */
@@ -131,13 +143,13 @@ class MaterialModifier{
 
         let ClassName = opts.className || def.ModifiedName();
 
-        let extendMaterial = new Function( 'BaseClass', 'uniforms', 'vertexShader', 'fragmentShader', `
+        let extendMaterial = new Function( 'BaseClass', 'uniforms', 'vertexShader', 'fragmentShader', 'cloneUniforms',`
 
             var cls = function ${ClassName}( params ){
 
                 BaseClass.call( this, params );
 
-                this.uniforms = Object.assign( {}, uniforms );
+                this.uniforms = cloneUniforms( uniforms );
 
                 this.vertexShader = vertexShader;
                 this.fragmentShader = fragmentShader;
@@ -175,7 +187,7 @@ class MaterialModifier{
             fragmentShader = opts.postModifyFragmentShader( fragmentShader );
         }
 
-        return extendMaterial( def.ShaderClass, uniforms, vertexShader, fragmentShader );
+        return extendMaterial( def.ShaderClass, uniforms, vertexShader, fragmentShader, cloneUniforms );
 
     }
 
