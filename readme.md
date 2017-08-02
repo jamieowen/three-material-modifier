@@ -1,7 +1,7 @@
 
 # Three.js Material Modifier
 
-Extend or modify three.js materials easily existing THREE.ShaderLib code to return vertex and fragment shader code.
+Extend or modify three.js materials easily.
 
 Existing three.js shader code is modified directly from the THREE.ShaderLib code at runtime.
 
@@ -30,7 +30,7 @@ let CustomStandardMaterial = MaterialModifier.extend( MeshStandardMaterial, {
 	uniforms: {
 		time: { type: 'f', value: 0.0 }
 	},
-    
+
 	vertexShader: {
 		preNormal: `
 			objectNormal = normalize( objectNormal );
@@ -63,7 +63,7 @@ Specify either the three.js material class or a string and supply a shader confi
 {
 	vertexShader: "modified vertex code..",
 	fragmentShader: "modified vertex code..",
-	uniforms: { 
+	uniforms: {
 		/** All base uniforms and custom uniforms included here **/
 	}
 }
@@ -139,7 +139,7 @@ let CustomMaterial = MaterialModifier.extend( MeshBasicMaterial, {
 			            );
 			}
 		`
-	}	
+	}
 }
 
 
