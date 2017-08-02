@@ -1,6 +1,6 @@
 {
   "name": "three-material-modifier",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Modify materials in there.js",
   "main": "MaterialModifier.js",
   "directories": {
