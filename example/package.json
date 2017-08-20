@@ -9,7 +9,7 @@
   "author": "Jamie Owen <hello@jamieowen.com> (=)",
   "license": "ISC",
   "dependencies": {
-    "preact": "^8.2.1",
+    "preact": "git@github.com:developit/preact.git",
     "preact-material-components": "^1.1.4",
     "three": "^0.87.1"
   },
@@ -21,6 +21,19 @@
           "presets": [
             "es2015"
           ]
+        }
+      ],
+      [
+        "scssify",
+        {
+          "sass": {},
+          "postcss": {
+            "autoprefixer": {
+              "browsers": [
+                "last 2 versions"
+              ]
+            }
+          }
         }
       ]
     ]

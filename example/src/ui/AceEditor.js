@@ -1,6 +1,15 @@
 
 import { h, render, Component } from 'preact';
 
+import {
+    ShaderLib,
+    ShaderChunk
+} from 'three';
+
+
+import ShaderUtils from './ShaderUtils';
+
+
 export default class AceEditor extends Component{
 
     constructor(props){
@@ -11,12 +20,32 @@ export default class AceEditor extends Component{
 
     componentDidMount(){
 
-        var editor = ace.edit( this.base );
-        editor.setTheme("ace/theme/solarized_dark");
-        editor.session.setMode("ace/mode/glsl");
+        this.editor = ace.edit( this.base );
+        this.editor.setTheme("ace/theme/solarized_dark");
+        this.editor.session.setMode("ace/mode/glsl");
 
+        this.updateEditor();
 
-        console.log( editor );
+    }
+
+    componentDidUpdate(){
+
+        this.updateEditor();
+
+    }
+
+    updateEditor(){
+
+        let lib = this.props.selectedShaderLib;
+        let text = ShaderLib[ lib ].vertexShader;
+
+        if( this.props.parseIncludes ){
+
+            text = ShaderUtils.parseIncludes( text );
+
+        }
+
+        this.editor.setValue( text );
 
     }
 
