@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve": "budo src/index.js --live --open -- -t [ babelify --presets [ es2015 ] ]"
+    "serve": "NODE_PATH=./node_modules budo src/index.js:bundle.js --dir static --live --open -- -t [ babelify --global --presets [ es2015 ] ]"
   },
   "author": "Jamie Owen <hello@jamieowen.com> (=)",
   "license": "ISC",
   "dependencies": {
-    "ace-builds": "^1.2.8",
-    "preact": "^8.2.1"
+    "preact": "^8.2.1",
+    "preact-material-components": "^1.1.4",
+    "three": "^0.87.1"
   },
   "browserify": {
     "transform": [
