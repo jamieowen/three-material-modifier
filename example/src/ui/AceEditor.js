@@ -36,16 +36,29 @@ export default class AceEditor extends Component{
 
     updateEditor(){
 
-        let lib = this.props.selectedShaderLib;
-        let text = ShaderLib[ lib ].vertexShader;
+        let lib = this.props.showShaderLibKey;
+        let shaderCode;
 
-        if( this.props.parseIncludes ){
+        console.log( 'SET LIB', lib );
+        switch( this.props.shaderDisplayMode ){
 
-            text = ShaderUtils.parseIncludes( text );
+            case 'vertex':
+                shaderCode = ShaderLib[ lib ].vertexShader;
+                break;
+
+            case 'fragment':
+                shaderCode = ShaderLib[ lib ].fragmentShader;
+                break;
 
         }
 
-        this.editor.setValue( text );
+        if( this.props.parseIncludes ){
+
+            shaderCode = ShaderUtils.parseIncludes( shaderCode );
+
+        }
+
+        this.editor.setValue( shaderCode,-1 );
 
     }
 
