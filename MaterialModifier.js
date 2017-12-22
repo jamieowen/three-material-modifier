@@ -9,6 +9,7 @@ import {
 } from 'three';
 
 import defaultHooks from './defaultHooks';
+import compileMaterialClass from './compileMaterialClass';
 
 const modifySource = ( source, hookDefs, hooks )=>{
 
@@ -18,14 +19,17 @@ const modifySource = ( source, hookDefs, hooks )=>{
 
         if( hooks[key] ){
 
-            match = /insert(before):(.*)|insert(after):(.*)/.exec( hookDefs[key] );
-
+            match = /insert(before):(.*)|insert(after):(.*)|replace:(.*)/.exec( hookDefs[key] );
+            
             if( match ){
                 if( match[1] ){ // before
                     source = source.replace( match[2], hooks[key] + '\n' + match[2] );
                 }else
                 if( match[3] ){ // after
                     source = source.replace( match[4], match[4] + '\n' + hooks[key] );
+                }else
+                if( match[5] ){ // replace
+                    source = source.replace( match[5], hooks[key] );
                 }
             }
 
@@ -35,17 +39,6 @@ const modifySource = ( source, hookDefs, hooks )=>{
     return source;
 
 }
-
-const cloneUniforms = ( uniforms )=>{
-
-    let clone = {};
-    for( let key in uniforms ){ // non-promitive uniform values will be referenced
-        clone[ key ] = Object.assign( {}, uniforms[key] );
-    }
-    return clone;
-
-}
-
 
 let shaderMap = null;
 const getShaderDef = ( classOrString )=>{
@@ -123,11 +116,15 @@ class MaterialModifier{
 
     modify( shader, opts ){
 
-        let def = getShaderDef( shader );
+        const def = getShaderDef( shader );
 
-        let vertexShader = modifySource( def.ShaderLib.vertexShader, this._vertexHooks, opts.vertexShader || {} );
-        let fragmentShader = modifySource( def.ShaderLib.fragmentShader, this._fragmentHooks, opts.fragmentShader || {} );
-        let uniforms = Object.assign( {}, def.ShaderLib.uniforms, opts.uniforms || {} );
+        const vertexHooks = Object.assign( {}, this._vertexHooks, opts.vertexHooks );
+        const vertexShader = modifySource( def.ShaderLib.vertexShader, vertexHooks, opts.vertexShader || {} );
+        
+        const fragmentHooks = Object.assign( {}, this._fragmentHooks, opts.fragmentHooks );
+        const fragmentShader = modifySource( def.ShaderLib.fragmentShader, fragmentHooks, opts.fragmentShader || {} );
+
+        const uniforms = Object.assign( {}, def.ShaderLib.uniforms, opts.uniforms || {} );
 
         return { vertexShader,fragmentShader,uniforms };
 
@@ -135,51 +132,14 @@ class MaterialModifier{
 
     extend( shader, opts ){
 
-        let def = getShaderDef( shader ); // ADJUST THIS SHADER DEF - ONLY DEFINE ONCE - AND STORE A USE COUNT ON EXTENDED VERSIONS.
+        const def = getShaderDef( shader ); // ADJUST THIS SHADER DEF - ONLY DEFINE ONCE - AND STORE A USE COUNT ON EXTENDED VERSIONS.
 
-        let vertexShader = modifySource( def.ShaderLib.vertexShader, this._vertexHooks, opts.vertexShader || {} );
-        let fragmentShader = modifySource( def.ShaderLib.fragmentShader, this._fragmentHooks, opts.fragmentShader || {} );
-        let uniforms = Object.assign( {}, def.ShaderLib.uniforms, opts.uniforms || {} );
+        const vertexHooks = Object.assign( {}, this._vertexHooks, opts.vertexHooks );
+        let vertexShader = modifySource( def.ShaderLib.vertexShader, vertexHooks, opts.vertexShader || {} );
 
-        let ClassName = opts.className || def.ModifiedName();
-
-        let extendMaterial = new Function( 'BaseClass', 'uniforms', 'vertexShader', 'fragmentShader', 'cloneUniforms',`
-
-            var cls = function ${ClassName}( params ){
-
-                BaseClass.call( this, params );
-
-                this.uniforms = cloneUniforms( uniforms );
-
-                this.vertexShader = vertexShader;
-                this.fragmentShader = fragmentShader;
-                this.type = '${ClassName}';
-
-                this.setValues( params );
-
-            }
-
-            cls.prototype = Object.create( BaseClass.prototype );
-            cls.prototype.constructor = cls;
-            cls.prototype.${ def.TypeCheck } = true;
-
-            cls.prototype.copy = function( source ){
-
-                BaseClass.prototype.copy.call( this, source );
-
-                this.uniforms = Object.assign( {}, source.uniforms );
-                this.vertexShader = vertexShader;
-                this.fragmentShader = fragmentShader;
-                this.type = '${ClassName}';
-
-                return this;
-
-            }
-
-            return cls;
-
-        `);
-
+        const fragmentHooks = Object.assign( {}, this._fragmentHooks, opts.fragmentHooks );
+        let fragmentShader = modifySource( def.ShaderLib.fragmentShader, fragmentHooks, opts.fragmentShader || {} );
+        
         if( opts.postModifyVertexShader ){
             vertexShader = opts.postModifyVertexShader( vertexShader );
         }
@@ -187,7 +147,16 @@ class MaterialModifier{
             fragmentShader = opts.postModifyFragmentShader( fragmentShader );
         }
 
-        return extendMaterial( def.ShaderClass, uniforms, vertexShader, fragmentShader, cloneUniforms );
+        return compileMaterialClass( {
+
+            extend: def.ShaderClass,
+            className: opts.className || def.ModifiedName(),
+            typeCheck: def.TypeCheck,
+            uniforms: Object.assign( {}, def.ShaderLib.uniforms, opts.uniforms || {} ),
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader
+
+        });
 
     }
 
